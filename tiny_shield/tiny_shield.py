@@ -1,7 +1,8 @@
 import copy
 
 from .utils.exceptions import UnprocessableEntityException
-from .utils.validators import VALIDATORS, SUPPORTED_TEXT_TYPES
+from .utils.validators import SUPPORTED_TEXT_TYPES
+from .utils.types import DEFINED_TYPES
 from .utils.constants import TINY_SHIELD_SEPARATOR, MAX_ITEMS
 
 
@@ -23,10 +24,10 @@ class TinyShield:
             if not all(field in model.keys() for field in base_minimum_fields):
                 raise Exception("Model {} missing a base required field [{}]".format(model, base_minimum_fields))
 
-            if model["type"] not in VALIDATORS:
+            if model["type"] not in DEFINED_TYPES:
                 raise Exception("Invalid model type [{}] provided in description".format(model["type"]))
 
-            type_description = VALIDATORS[model["type"]]
+            type_description = DEFINED_TYPES[model["type"]]
             required_fields = type_description["required_fields"]
 
             for required_field in required_fields:
@@ -78,15 +79,15 @@ class TinyShield:
         if rule.get("allow_nulls", False) and rule["value"] is None:
             return rule["value"]
         elif rule["type"] not in ("array", "object"):
-            if rule["type"] in VALIDATORS:
-                return VALIDATORS[rule["type"]]["func"](rule)
+            if rule["type"] in DEFINED_TYPES:
+                return DEFINED_TYPES[rule["type"]]["func"](rule)
             else:
                 raise Exception("Invalid Type {} in rule".format(rule["type"]))
         # Array is a "special" type since it is a list of other types which need to be validated
         elif rule["type"] == "array":
             rule["array_min"] = rule.get("array_min", 1)
             rule["array_max"] = rule.get("array_max", MAX_ITEMS)
-            value = VALIDATORS[rule["type"]]["func"](rule)
+            value = DEFINED_TYPES[rule["type"]]["func"](rule)
             child_rule = copy.copy(rule)
             child_rule["type"] = rule["array_type"]
             child_rule["min"] = rule.get("array_min")
@@ -101,7 +102,7 @@ class TinyShield:
         elif rule["type"] == "object":
             rule["object_min"] = rule.get("object_min", 1)
             rule["object_max"] = rule.get("object_max", MAX_ITEMS)
-            provided_object = VALIDATORS[rule["type"]]["func"](rule)
+            provided_object = DEFINED_TYPES[rule["type"]]["func"](rule)
             object_result = {}
             for k, v in rule["object_keys"].items():
                 try:

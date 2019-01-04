@@ -10,7 +10,7 @@ from .validators import validate_object
 from .validators import validate_text
 
 
-VALIDATORS = {
+DEFINED_TYPES = {
     "array": {"func": validate_array, "required_fields": ["array_type"], "defaults": {}},
     "boolean": {"func": validate_boolean, "required_fields": [], "defaults": {}},
     "date": {"func": validate_datetime, "required_fields": [], "defaults": {}},
