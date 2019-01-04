@@ -1,12 +1,7 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from tiny_shield.utils.validators import *
-
 from tiny_shield.utils.constants import TINY_SHIELD_SEPARATOR
-
+from tiny_shield.utils.validators import *
+from tiny_shield.utils.exceptions import InvalidParameterException
+from .text_rules import *
 
 ARRAY_RULE = {
     "name": "test",
@@ -49,14 +44,6 @@ FLOAT_RULE = {
     "min": 2,
     "max": 4,
 }
-TEXT_RULE = {
-    "name": "test",
-    "type": "text",
-    "key": "filters{}test".format(TINY_SHIELD_SEPARATOR),
-    "optional": True,
-    "value": "hello world",
-    "text_type": "search",
-}
 INTEGER_RULE = {
     "name": "test",
     "type": "float",
@@ -75,45 +62,60 @@ OBJECT_RULE = {
 }
 
 
-"""
-Beacuse these functions all raise Exceptions on failure, all we need to do to write the unit tests is call the function.
-If an exception is raised, the test will fail
-"""
-
-
 def test_validate_array():
-    returned_value = validate_array(ARRAY_RULE)
-    assert ARRAY_RULE["value"] == returned_value
+    assert ARRAY_RULE["value"] == validate_array(ARRAY_RULE)
 
 
 def test_validate_boolean():
-    returned_value = validate_boolean(BOOLEAN_RULE)
-    assert BOOLEAN_RULE["value"] == returned_value
+    assert BOOLEAN_RULE["value"] == validate_boolean(BOOLEAN_RULE)
 
 
 def test_validate_datetime():
-    returned_value = validate_datetime(DATETIME_RULE)
-    assert "1984-09-16T04:05:00Z" == returned_value
+    assert "1984-09-16T04:05:00Z" == validate_datetime(DATETIME_RULE)
 
 
 def test_validate_enum():
-    returned_value = validate_enum(ENUM_RULE)
-    assert ENUM_RULE["value"] == returned_value
+    assert ENUM_RULE["value"] == validate_enum(ENUM_RULE)
 
 
 def test_validate_float():
-    returned_value = validate_float(FLOAT_RULE)
-    assert FLOAT_RULE["value"] == returned_value
+    assert FLOAT_RULE["value"] == validate_float(FLOAT_RULE)
 
 
 def test_validate_integer():
-    returned_value = validate_integer(INTEGER_RULE)
-    assert INTEGER_RULE["value"] == returned_value
+    assert INTEGER_RULE["value"] == validate_integer(INTEGER_RULE)
 
 
-def test_validate_text():
-    returned_value = validate_text(TEXT_RULE)
-    assert TEXT_RULE["value"] == returned_value
+def test_validate_text_simple():
+    assert TEXT_SEARCH_RULE_1["value"] == validate_text(TEXT_SEARCH_RULE_1)
+
+
+def test_validate_text_special_chars():
+    assert "odd characters" == validate_text(TEXT_SEARCH_RULE_2)
+
+
+def test_validate_text_whitespace():
+    assert "what whitespace?" == validate_text(TEXT_SEARCH_RULE_3)
+
+
+def test_validate_text_integer():
+    try:
+        validate_text(TEXT_SEARCH_RULE_4)
+        raise Exception("InvalidParameterException should have been raised!!!")
+    except InvalidParameterException as e:
+        pass
+
+
+def test_validate_text_url():
+    assert "http%3A%2F%2Fyabber.io" == validate_text(TEXT_URL_RULE_1)
+
+
+def test_validate_text_url_2():
+    assert "hello+world" == validate_text(TEXT_URL_RULE_2)
+
+
+def test_validate_text_url3():
+    assert "postgres%3A%2F%2Freadonly%3Achangeme%40127.0.0.1%3A5432%2Fpostgres" == validate_text(TEXT_URL_RULE_3)
 
 
 def test_validate_object():

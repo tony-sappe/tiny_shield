@@ -1,9 +1,9 @@
 import copy
 
-from .utils.exceptions import UnprocessableEntityException
-from .utils.validators import SUPPORTED_TEXT_TYPES
-from .utils.types import DEFINED_TYPES
 from .utils.constants import TINY_SHIELD_SEPARATOR, MAX_ITEMS
+from .utils.exceptions import UnprocessableEntityException
+from .utils.types import DEFINED_TYPES
+from .utils.validators import SUPPORTED_TEXT_TYPES
 
 
 class TinyShield:

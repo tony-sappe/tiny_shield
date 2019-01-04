@@ -170,14 +170,7 @@ def validate_text(rule):
         raise InvalidParameterException(INVALID_TYPE_MSG.format(**rule))
     _check_max(rule)
     _check_min(rule)
-    search_remap = {ordinal: None for ordinal in SPECIAL_CHARACTERS.values()}
-    #     ord("\t"): None,  # horizontal tab
-    #     ord("\v"): None,  # vertical tab
-    #     ord("\b"): None,  # ascii backspace
-    #     ord("\f"): None,  # ascii formfeed
-    #     ord("\r"): None,  # carriage return
-    #     ord("\n"): None,  # newline
-    # }
+
     text_type = rule["text_type"]
     if text_type not in SUPPORTED_TEXT_TYPES:
         msg = "Invalid model {key}: '{text_type}' is not a valid text_type".format(**rule)
@@ -193,6 +186,7 @@ def validate_text(rule):
         # This removes:
         #    leading and trailing whitespace
         #    ASCII escape characters
+        search_remap = {ordinal: None for ordinal in SPECIAL_CHARACTERS.values()}
         val = rule["value"].translate(search_remap).strip()
         if val != rule["value"]:
             logger.warn("Field {} value was changed from {} to {}".format(rule["key"], repr(rule["value"]), repr(val)))

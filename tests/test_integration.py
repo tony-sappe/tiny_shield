@@ -1,8 +1,4 @@
 import copy
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from tiny_shield.tiny_shield import TinyShield
 from tiny_shield.utils.constants import TINY_SHIELD_SEPARATOR

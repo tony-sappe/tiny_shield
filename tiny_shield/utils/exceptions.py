@@ -1,5 +1,5 @@
 class InvalidParameterException(Exception):
-    def __init__(self, message, errors):
+    def __init__(self, message):
 
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
@@ -9,7 +9,7 @@ class InvalidParameterException(Exception):
 
 
 class UnprocessableEntityException(Exception):
-    def __init__(self, message, errors):
+    def __init__(self, message):
 
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
