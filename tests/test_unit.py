@@ -87,35 +87,35 @@ def test_validate_integer():
 
 
 def test_validate_text_simple():
-    assert TEXT_SEARCH_RULE_1["value"] == validate_text(TEXT_SEARCH_RULE_1)
+    assert TEXT_SEARCH_RULE_PLAIN["value"] == validate_text(TEXT_SEARCH_RULE_PLAIN)
 
 
 def test_validate_text_special_chars():
-    assert "odd characters" == validate_text(TEXT_SEARCH_RULE_2)
+    assert "odd characters" == validate_text(TEXT_SEARCH_RULE_ODD_CHARS)
 
 
 def test_validate_text_whitespace():
-    assert "what whitespace?" == validate_text(TEXT_SEARCH_RULE_3)
+    assert "what whitespace?" == validate_text(TEXT_SEARCH_RULE_WHITESPACE)
 
 
 def test_validate_text_integer():
     try:
-        validate_text(TEXT_SEARCH_RULE_4)
+        validate_text(TEXT_SEARCH_RULE_NON_STRING)
         raise Exception("InvalidParameterException should have been raised!!!")
     except InvalidParameterException as e:
         pass
 
 
 def test_validate_text_url():
-    assert "http%3A%2F%2Fyabber.io" == validate_text(TEXT_URL_RULE_1)
+    assert "http%3A%2F%2Fyabber.io" == validate_text(TEXT_URL_RULE_PLAIN)
 
 
 def test_validate_text_url_2():
-    assert "hello+world" == validate_text(TEXT_URL_RULE_2)
+    assert "hello+world" == validate_text(TEXT_URL_RULE_SPACE)
 
 
 def test_validate_text_url3():
-    assert "postgres%3A%2F%2Freadonly%3Achangeme%40127.0.0.1%3A5432%2Fpostgres" == validate_text(TEXT_URL_RULE_3)
+    assert "postgres%3A%2F%2Fread%3Achangeme%40127.0.0.1%3A5432%2Fdb" == validate_text(TEXT_URL_RULE_URI)
 
 
 def test_validate_object():

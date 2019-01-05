@@ -4,7 +4,7 @@ import urllib
 
 from .exceptions import InvalidParameterException, UnprocessableEntityException
 
-from .constants import MAX_ITEMS, MIN_FLOAT, MAX_FLOAT, MIN_INT, MAX_INT, SPECIAL_CHARACTERS
+from .constants import DEFAULT_MAX_ITEMS, DEFAULT_MIN_ITEMS, MIN_FLOAT, MAX_FLOAT, MIN_INT, MAX_INT, SPECIAL_CHARACTERS
 
 logger = logging.getLogger("console")
 
@@ -54,8 +54,8 @@ def _verify_float_value(value):
 
 
 def validate_array(rule):
-    rule["min"] = rule.get("min") or 1
-    rule["max"] = rule.get("max") or MAX_ITEMS
+    rule["min"] = rule.get("min") or DEFAULT_MIN_ITEMS
+    rule["max"] = rule.get("max") or DEFAULT_MAX_ITEMS
     value = rule["value"]
     if type(value) is not list:
         raise InvalidParameterException(INVALID_TYPE_MSG.format(**rule))
@@ -164,8 +164,8 @@ def validate_object(rule):
 
 
 def validate_text(rule):
-    rule["min"] = rule.get("min") or 1
-    rule["max"] = rule.get("max") or MAX_ITEMS
+    rule["min"] = rule.get("min") or DEFAULT_MIN_ITEMS
+    rule["max"] = rule.get("max") or DEFAULT_MAX_ITEMS
     if type(rule["value"]) is not str:
         raise InvalidParameterException(INVALID_TYPE_MSG.format(**rule))
     _check_max(rule)

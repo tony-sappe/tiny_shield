@@ -1,15 +1,17 @@
 import copy
 
-from .utils.constants import TINY_SHIELD_SEPARATOR, MAX_ITEMS
+from .utils.constants import TINY_SHIELD_SEPARATOR, DEFAULT_MAX_ITEMS, DEFAULT_MIN_ITEMS
 from .utils.exceptions import UnprocessableEntityException
 from .utils.types import DEFINED_TYPES
 from .utils.validators import SUPPORTED_TEXT_TYPES
 
+NULL_VALUE = ...  # Use Ellipsis since None can be a valid value provided in the request
+
 
 class TinyShield:
     def __init__(self, model_list):
-        self.rules = self.check_models(model_list)
         self.data = {}
+        self.rules = self.check_models(model_list)
 
     def block(self, request):
         self.parse_request(request)
@@ -17,12 +19,13 @@ class TinyShield:
         return self.data
 
     def check_models(self, models):
+        self.raise_for_duplicate_names(models)
         # Confirm required fields (both baseline and type-specific) are in the model
-        base_minimum_fields = ("name", "key", "type")
+        universal_required_fields = ("name", "key", "type")
 
         for model in models:
-            if not all(field in model.keys() for field in base_minimum_fields):
-                raise Exception("Model {} missing a base required field [{}]".format(model, base_minimum_fields))
+            if not all(field in model.keys() for field in universal_required_fields):
+                raise Exception("Model {} missing a required field [{}]".format(model, universal_required_fields))
 
             if model["type"] not in DEFINED_TYPES:
                 raise Exception("Invalid model type [{}] provided in description".format(model["type"]))
@@ -43,11 +46,14 @@ class TinyShield:
 
             model["optional"] = model.get("optional", True)
 
+        return models
+
+    @staticmethod
+    def raise_for_duplicate_names(models):
         # Check to ensure unique names for destination dictionary
         keys = [x["name"] for x in models if x["type"] != "schema"]  # ignore schema as they are schema-only
         if len(keys) != len(set(keys)):
             raise Exception("Duplicate destination keys provided. Name values must be unique")
-        return models
 
     def parse_request(self, request):
         for item in self.rules:
@@ -66,12 +72,11 @@ class TinyShield:
                 item["value"] = item["default"]
             else:
                 # This model/field is optional, no value provided, and no default value.
-                # Use the "hidden" feature Ellipsis since None can be a valid value provided in the request
-                item["value"] = ...
+                item["value"] = NULL_VALUE
 
     def enforce_rules(self):
         for item in self.rules:
-            if item["value"] != ...:
+            if item["value"] != NULL_VALUE:
                 struct = item["key"].split(TINY_SHIELD_SEPARATOR)
                 self.recurse_append(struct, self.data, self.apply_rule(item))
 
@@ -85,8 +90,8 @@ class TinyShield:
                 raise Exception("Invalid Type {} in rule".format(rule["type"]))
         # Array is a "special" type since it is a list of other types which need to be validated
         elif rule["type"] == "array":
-            rule["array_min"] = rule.get("array_min", 1)
-            rule["array_max"] = rule.get("array_max", MAX_ITEMS)
+            rule["array_min"] = rule.get("array_min", DEFAULT_MIN_ITEMS)
+            rule["array_max"] = rule.get("array_max", DEFAULT_MAX_ITEMS)
             value = DEFINED_TYPES[rule["type"]]["func"](rule)
             child_rule = copy.copy(rule)
             child_rule["type"] = rule["array_type"]
@@ -100,8 +105,8 @@ class TinyShield:
             return array_result
         # Object is a "special" type since it is comprised of other types which need to be validated
         elif rule["type"] == "object":
-            rule["object_min"] = rule.get("object_min", 1)
-            rule["object_max"] = rule.get("object_max", MAX_ITEMS)
+            rule["object_min"] = rule.get("object_min", DEFAULT_MIN_ITEMS)
+            rule["object_max"] = rule.get("object_max", DEFAULT_MAX_ITEMS)
             provided_object = DEFINED_TYPES[rule["type"]]["func"](rule)
             object_result = {}
             for k, v in rule["object_keys"].items():
@@ -129,8 +134,8 @@ class TinyShield:
         try:
             if param_type == "object":
                 child_rule["object_keys"] = source["object_keys"]  # TODO investigate why
-                child_rule["object_min"] = source.get("object_min", 1)
-                child_rule["object_max"] = source.get("object_max", MAX_ITEMS)
+                child_rule["object_min"] = source.get("object_min", DEFAULT_MIN_ITEMS)
+                child_rule["object_max"] = source.get("object_max", DEFAULT_MAX_ITEMS)
             if param_type == "enum":
                 child_rule["enum_values"] = source["enum_values"]
             if param_type == "array":

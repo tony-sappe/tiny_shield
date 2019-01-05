@@ -1,4 +1,4 @@
-from .constants import MAX_ITEMS
+from .constants import DEFAULT_MAX_ITEMS, DEFAULT_MIN_ITEMS
 from .validators import SUPPORTED_TEXT_TYPES
 from .validators import validate_array
 from .validators import validate_boolean
@@ -29,6 +29,6 @@ DEFINED_TYPES = {
         "func": validate_text,
         "types": SUPPORTED_TEXT_TYPES,
         "required_fields": ["text_type"],
-        "defaults": {"min": 1, "max": MAX_ITEMS},
+        "defaults": {"min": DEFAULT_MIN_ITEMS, "max": DEFAULT_MAX_ITEMS},
     },
 }
