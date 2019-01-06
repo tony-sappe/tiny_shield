@@ -1,10 +1,11 @@
 import copy
+import pytest
 
 from tiny_shield.tiny_shield import TinyShield
 from tiny_shield.utils.constants import TINY_SHIELD_SEPARATOR
 
 
-FILTER_OBJ = {
+LARGE_JSON_EXAMPLE = {
     "filters": {
         "keywords": ["grumpy", "bungle"],
         "award_type_codes": ["A", "B", "C", "D"],
@@ -136,11 +137,55 @@ def test_recurse_append():
 
 
 def test_parse_request():
-    request = FILTER_OBJ
+    request = LARGE_JSON_EXAMPLE
     TS.parse_request(request)
     assert all("value" in item for item in TS.rules)
 
 
 def test_enforce_rules():
     TS.enforce_rules()
-    assert TS.data == FILTER_OBJ
+    assert TS.data == LARGE_JSON_EXAMPLE
+
+
+def test_default_json():
+    input_json = {}
+
+    models = [
+        {"name": "x", "key": "x", "type": "object", "default": {"y": 3}, "object_keys": {"y": {"type": "integer"}}}
+    ]
+    expected_object = {"x": {"y": 3}}
+
+    passed_data = TinyShield(models).block(input_json)
+    assert expected_object == passed_data
+
+    input_json = {"x": {}}
+    passed_data = TinyShield(models).block(input_json)
+    assert expected_object == passed_data
+
+    input_json = {"y": {}}
+    passed_data = TinyShield(models).block(input_json)
+    assert expected_object == passed_data
+
+
+@pytest.mark.skip  # Skip until fixed!!!
+def test_nested_default_in_object():
+    models = [
+        {
+            "name": "filters",
+            "type": "object",
+            "key": "filters",
+            "object_keys": {
+                "color": {"type": "text", "text_type": "search"},
+                "size": {"type": "integer", "max": 4, "default": 2},
+            },
+            "default": {"size": 2},
+        }
+    ]
+
+    expected_object = {"filters": {"size": 2}}
+    passed_data = TinyShield(models).block({})
+    assert expected_object == passed_data
+
+    expected_object = {"filters": {"size": 2, "color": "blue"}}
+    passed_data = TinyShield(models).block({"filters": {"color": "blue"}})
+    assert expected_object == passed_data

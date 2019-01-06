@@ -20,22 +20,12 @@ class TinyShield:
 
     def check_models(self, models):
         self.raise_for_duplicate_names(models)
-        # Confirm required fields (both baseline and type-specific) are in the model
-        universal_required_fields = ("name", "key", "type")
+        self.raise_for_invalid_type(models)
+        self.raise_for_missing_mandatory_fields(models)
+        self.raise_for_missing_type_specific_field(models)
 
         for model in models:
-            if not all(field in model.keys() for field in universal_required_fields):
-                raise Exception("Model {} missing a required field [{}]".format(model, universal_required_fields))
-
-            if model["type"] not in DEFINED_TYPES:
-                raise Exception("Invalid model type [{}] provided in description".format(model["type"]))
-
             type_description = DEFINED_TYPES[model["type"]]
-            required_fields = type_description["required_fields"]
-
-            for required_field in required_fields:
-                if required_field not in model:
-                    raise Exception("Model {} missing a type required field: {}".format(model, required_field))
 
             if model.get("text_type") and model["text_type"] not in SUPPORTED_TEXT_TYPES:
                 msg = "Invalid model '{key}': '{text_type}' is not a valid text_type".format(**model)
@@ -54,6 +44,29 @@ class TinyShield:
         keys = [x["name"] for x in models if x["type"] != "schema"]  # ignore schema as they are schema-only
         if len(keys) != len(set(keys)):
             raise Exception("Duplicate destination keys provided. Name values must be unique")
+
+    @staticmethod
+    def raise_for_invalid_type(models):
+        for model in models:
+            if model["type"] not in DEFINED_TYPES:
+                raise Exception("Invalid model type [{}] provided in description".format(model["type"]))
+
+    @staticmethod
+    def raise_for_missing_mandatory_fields(models):
+        universal_required_fields = ("name", "key", "type")
+        for model in models:
+            if not all(field in model.keys() for field in universal_required_fields):
+                raise Exception("Model {} missing a required field [{}]".format(model, universal_required_fields))
+
+    @staticmethod
+    def raise_for_missing_type_specific_field(models):
+        for model in models:
+            type_description = DEFINED_TYPES[model["type"]]
+            required_fields = type_description["required_fields"]
+
+            for required_field in required_fields:
+                if required_field not in model:
+                    raise Exception("Model {} missing a type required field: {}".format(model, required_field))
 
     def parse_request(self, request):
         for item in self.rules:
